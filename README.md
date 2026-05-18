@@ -1,6 +1,11 @@
-# BrainDecode
+# BrainDecode: Computational workflow for detecting, validating, and analyzing amino acid substitutions from alternate RNA decoding in aging and neurodegeneration.
 
-BrainDecode is a workflow for detecting, validating, and analyzing substituted amino acid peptides in aging and neurodegeneration proteomics datasets.
+This repository provides tools to identify, validate, and quantify amino acid substitutions in LC-MS proteomics data that arise from alternative RNA decoding. The described pipelines evaluate multiplexed LC-MS proteomics data described in [Bai et al. (2020)](10.1016/j.neuron.2019.12.015), [Ping et al. (2018)](https://doi.org/10.1038/sdata.2018.36), and [Takasugi et al. (2024)](10.1038/s41467-024-52845-x).
+
+This project builds on the work of the **Slavov Laboratory**:
+
+* [Decode Website](https://decode.slavovlab.net) &nbsp; | &nbsp; [Preprint article](https://doi.org/10.1101/2024.08.26.609665)
+* [Decode_Pipeline](https://github.com/SlavovLab/decode/tree/main/decode_pipeline)
 
 The repository contains the code, templates, sample maps, reusable dependency tables, and analysis notebooks. Large raw/search inputs, MaxQuant output, and plot exports are kept outside the Git repository in `Project_BrainDecode`.
 
@@ -88,8 +93,7 @@ Project_BrainDecode/mq_output/
 
 The notebooks expect dataset subfolders under `mq_output`, including `Ping_2018`, `Takasugi_2024`, and `Bai_2020`.
 
-## Typical Workflow
-
+## Analysis Workflows
 1. Place or generate raw analysis inputs in `Project_BrainDecode/Analysis_Inputs/`.
 2. Place MaxQuant output in `Project_BrainDecode/mq_output/`.
 3. Use scripts in `Scripts/Generation scripts/` to generate XML or pipeline files as needed.
@@ -97,19 +101,24 @@ The notebooks expect dataset subfolders under `mq_output`, including `Ping_2018`
 5. Save tables and reusable outputs to `Dependencies/Analysis_Outputs/`.
 6. Save plots to `Project_BrainDecode/Plots/`.
 
-## Git Notes
+## Data Generation Workflows
+### Step 1: Custom protein databases 
+Use RNA-seq data matched to LC-MS proteomics data to create sample-specific protein databases.
 
-Avoid committing large raw data, MaxQuant output, or generated plots. Keep those in `Project_BrainDecode` or another external storage location.
+The code for this step is in [custom_protein_database_pipeline](https://github.com/SlavovLab/decode/tree/main/custom_protein_database_pipeline) and the [README.md](custom_protein_database_pipeline/README.md) in that directory contains detailed instructions for running the code.
 
-Recommended exclusions:
+If no matched RNA-seq data is available, this step can be skipped, but caution should be taken in interpreting quantified amino acid substitutions as there is lower confidence that they are not encoded in the genome.
 
-```gitignore
-.DS_Store
-__pycache__/
-*.pyc
-Analysis_Inputs/
-mq_output/
-Plots/
-Project_BrainDecode/
-*.raw
-```
+### Step 2: Identifying modified peptides with MaxQuant
+
+
+### Step 3: Identifying candidate alternate translation events
+
+
+### Step 4. Validation search with MaxQuant (or another proteomics data search engine)
+
+
+### Step 5. Quantify alternate decoding events
+
+
+### Step 6. Downstream data analysis
