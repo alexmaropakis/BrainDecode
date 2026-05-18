@@ -1,2 +1,2 @@
 # BrainDecode
-Pipeline for AAS analysis of aging and neurodegeneratin proteomics datasets.
+A pipeline for analyzing substituted amino acid peptides in aging and neurodegeneration.
