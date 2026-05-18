@@ -48,15 +48,6 @@ Project_BrainDecode/
 └── Plots/
 ```
 
-The notebooks currently use these absolute project roots:
-
-```python
-CODE_DIR = "/Users/alexmaropakis/Projects/BrainDecode/"
-PROJECT_DIR = "/Users/alexmaropakis/Projects/Project_BrainDecode/"
-```
-
-`Analysis_Inputs`, `mq_output`, and `Plots` should stay in `Project_BrainDecode` rather than this Git repository.
-
 ## Key Folders
 
 `Scripts/Generation scripts/` contains scripts that generate MaxQuant XML files, pipeline scripts, and translation resources.
@@ -72,26 +63,6 @@ PROJECT_DIR = "/Users/alexmaropakis/Projects/Project_BrainDecode/"
 `Dependencies/Ping_2018/`, `Dependencies/Takasugi_2024/`, and `Dependencies/Bai_2020/` contain reusable analysis dependency files such as fragment dictionaries, PTM heatmap data, dataset metrics, and validation summaries.
 
 `Dependencies/Analysis_Outputs/` contains non-plot analysis outputs such as `.xlsx`, `.tsv`, and `.p` files. Plot files should not be stored there.
-
-## Plot Policy
-
-All `.pdf` and `.png` outputs should go to:
-
-```text
-Project_BrainDecode/Plots/
-```
-
-`Dependencies/Analysis_Outputs/` should contain no `.pdf` or `.png` files.
-
-## MaxQuant Output Policy
-
-MaxQuant output should use lowercase `mq_output`:
-
-```text
-Project_BrainDecode/mq_output/
-```
-
-The notebooks expect dataset subfolders under `mq_output`, including `Ping_2018`, `Takasugi_2024`, and `Bai_2020`.
 
 ## Analysis Workflows
 1. Place or generate raw analysis inputs in `Project_BrainDecode/Analysis_Inputs/`.
