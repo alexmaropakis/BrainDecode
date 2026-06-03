@@ -93,3 +93,20 @@ If no matched RNA-seq data is available, this step can be skipped, but caution s
 
 
 ### Step 6. Downstream data analysis
+
+
+## Running BLASTp 
+```
+cd ~/bin
+wget https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.17.0+-x64-linux.tar.gz
+tar -xzf ncbi-blast-2.17.0+-x64-linux.tar.gz
+
+echo 'export PATH=$HOME/bin/ncbi-blast-2.16.0+/bin:$PATH' >> ~/.bashrc
+source ~/.bashrc
+
+blastp -version
+makeblastdb -version
+
+```
+
+
