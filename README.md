@@ -82,6 +82,8 @@ If no matched RNA-seq data is available, this step can be skipped, but caution s
 
 ### Step 2: Identifying modified peptides with MaxQuant
 
+[Guide for running MaxQuant in Linux.](https://github.com/alexmaropakis/MaxQuant_Linux_Tutorial)
+
 
 ### Step 3: Identifying candidate alternate translation events
 
