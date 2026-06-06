@@ -95,10 +95,10 @@
    </massDifferenceMods>
    <mainSearchMaxCombinations>200</mainSearchMaxCombinations>
    <writeMsScansTable>False</writeMsScansTable>
-   <writeMsmsScansTable>True</writeMsmsScansTable>
-   <writePasefMsmsScansTable>True</writePasefMsmsScansTable>
+   <writeMsmsScansTable>False</writeMsmsScansTable>
+   <writePasefMsmsScansTable>False</writePasefMsmsScansTable>
    <writeAccumulatedPasefMsmsScansTable>False</writeAccumulatedPasefMsmsScansTable>
-   <writeMs3ScansTable>True</writeMs3ScansTable>
+   <writeMs3ScansTable>False</writeMs3ScansTable>
    <writeAllPeptidesTable>True</writeAllPeptidesTable>
    <writeMzRangeTable>True</writeMzRangeTable>
    <writeDiaFragmentTable>False</writeDiaFragmentTable>
@@ -119,7 +119,6 @@
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
-   <fixedCombinedFolder></fixedCombinedFolder>
    <fullMinMz>-1.79769313486232E+308</fullMinMz>
    <fullMaxMz>1.79769313486232E+308</fullMaxMz>
    <sendEmail>False</sendEmail>

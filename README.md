@@ -82,6 +82,8 @@ If no matched RNA-seq data is available, this step can be skipped, but caution s
 
 ### Step 2: Identifying modified peptides with MaxQuant
 
+[Guide for running MaxQuant in Linux.](https://github.com/alexmaropakis/MaxQuant_Linux_Tutorial)
+
 
 ### Step 3: Identifying candidate alternate translation events
 
@@ -93,3 +95,21 @@ If no matched RNA-seq data is available, this step can be skipped, but caution s
 
 
 ### Step 6. Downstream data analysis
+
+
+## Running BLASTp 
+```
+cd ~/bin
+wget https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.17.0+-x64-linux.tar.gz
+tar -xzf ncbi-blast-2.17.0+-x64-linux.tar.gz
+rm ncbi-blast-2.17.0+-x64-linux.tar.gz
+
+echo 'export PATH=$HOME/bin/ncbi-blast-2.17.0+/bin:$PATH' >> ~/.bashrc
+source ~/.bashrc
+
+blastp -version
+makeblastdb -version
+
+```
+
+

@@ -5,8 +5,19 @@ import argparse
 import os
 import re
 
-# Generate MaxQuant XML file and SLURM script
-# Last updated by: Alex Maropakis, 05-22-2026
+"""
+Generate MaxQuant XML file and SLURM script
+Last updated by: Alex Maropakis, 05-22-2026
+
+Example usage:
+python Alex_gen_Validation_mqXML.py /home/maropakis.a/scripts/XML/templates/tmt10_Val_MS3_template.xml \
+    /scratch/maropakis.a/MQ_raw/Ping_2018/ACG/b3/ \
+    -o Ping2018_ACG_B3_Val.xml \
+    -e Ping_2018 \
+    -s S3 \
+    --partition short \
+    -t 21
+"""
 
 print("Defining arguments...")
 parser = argparse.ArgumentParser(description='Generate MaxQuant XML and SLURM script')
@@ -15,7 +26,7 @@ parser.add_argument('raw_file_folders', type=str, nargs='+')
 parser.add_argument('-o', '--outfile', type=str, required=True)
 parser.add_argument('-e', '--experiment', type=str, required=True, help='Experiment name, e.g. Takasugi_2024')
 parser.add_argument('-s', '--sample', type=str, required=True, help='Sample / MQ experiment label, e.g. S3 or 3')
-parser.add_argument('-mq', '--mq-version', type=str, default='1_6_17_0', help='MaxQuant version, e.g. 1_6_17_0')
+parser.add_argument('-mq', '--mq-version', type=str, default='2_8_0_0', help='MaxQuant version, e.g. 2_8_0_0')
 parser.add_argument('-t', '--threads', type=int, default=8, help='Number of threads to use')
 parser.add_argument('--species', choices=['human', 'mouse'], default='human')
 parser.add_argument('--search-type', type=str, default='Val', choices=['DP', 'Val'])
@@ -41,7 +52,7 @@ def mq_experiment_label(sample):
     return sample[1:] if sample.upper().startswith('S') and sample[1:].isdigit() else sample
 
 
-# --- Replace FASTA path ---
+# Replace FASTA path
 appended_dir = '/scratch/maropakis.a/Dependencies/FASTA_appended/'
 
 fasta_candidates = [x for x in os.listdir(appended_dir) if x.endswith('_MTP.fasta')]
@@ -92,8 +103,6 @@ fasta_block = f"""<fastaFiles>
 </fastaFiles>"""
 
 print(f"Replacing FASTA path... {fasta_path}")
-
-# --- SAFE XML replacement (NO REGEX) ---
 start_tag = "<fastaFiles>"
 end_tag = "</fastaFiles>"
 
@@ -105,7 +114,7 @@ if start_idx == -1 or end_idx == -1:
 
 mqpar_text = mqpar_text[:start_idx] + fasta_block + mqpar_text[end_idx:]
 
-# --- Turn DotNet = True if not already ---
+# Turn DotNet = True if not already 
 print("Turning DotNet = True...")
 mqpar_text = re.sub(
     r'<useDotNetCore>False</useDotNetCore>',
@@ -114,7 +123,7 @@ mqpar_text = re.sub(
     flags=re.DOTALL
 )
 
-# --- Collect raw files in order of fraction number ---
+# Collect raw files in order of fraction number 
 print("Collecting raw files...")
 raw_files = []
 
@@ -146,7 +155,7 @@ mqpar_text = re.sub(
     flags=re.DOTALL
 )
 
-# --- Adjust experiments, fractions, ptms, paramGroupIndices ---
+# Adjust experiments, fractions, ptms, paramGroupIndices 
 print("Adjusting experiments, fractions, ptms, paramGroupIndices...")
 
 label = mq_experiment_label(args.sample)
@@ -172,7 +181,7 @@ mqpar_text = re.sub(
     flags=re.DOTALL
 )
 
-# --- Set up output folder ---
+# Set up output folder 
 search_name = os.path.splitext(os.path.basename(args.outfile))[0]
 
 output_folder = f'/scratch/maropakis.a/MQ_outputs/{args.experiment}/{args.search_type}/{search_name}'
@@ -195,7 +204,7 @@ mqpar_text = re.sub(
     flags=re.DOTALL
 )
 
-# --- Write XML file ---
+# Write XML file 
 xml_dir = os.path.join(os.path.expanduser('~'), 'scripts', 'XML', args.search_type)
 
 os.makedirs(xml_dir, exist_ok=True)
@@ -205,7 +214,7 @@ xml_path = os.path.join(xml_dir, os.path.basename(args.outfile))
 with open(xml_path, 'w') as f:
     f.write(mqpar_text)
 
-# --- Generate SLURM script ---
+# Generate SLURM script 
 print(f"Generating SLURM script... {search_name}")
 
 mq_version_dots = args.mq_version.replace('_', '.')
@@ -219,8 +228,7 @@ slurm_script = f"""#!/bin/bash
 #SBATCH --mem={args.mem}
 #SBATCH --partition={args.partition}
 
-source ~/.bashrc
-
+export DOTNET_ROOT=$HOME/dotnet8
 MAXQUANT_EXE=/home/maropakis.a/MQ/MaxQuant_{mq_version_dots}/bin/MaxQuantCmd.exe
 
 srun dotnet $MAXQUANT_EXE {xml_path}
@@ -231,15 +239,14 @@ slurm_path = os.path.join(
     'scripts',
     'Batch',
     'searches',
-    search_name + '.sh'
-)
+    search_name + '.sh')
 
 os.makedirs(os.path.dirname(slurm_path), exist_ok=True)
 
 with open(slurm_path, 'w') as f:
     f.write(slurm_script)
 
-# --- Summary ---
+# Summary 
 print(f"XML and SLURM script successfully created! {search_name}")
 print(f"  FASTA:   {fasta_path}")
 print(f"  Sample: {args.sample}")
