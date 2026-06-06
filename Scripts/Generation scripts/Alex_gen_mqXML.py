@@ -5,15 +5,17 @@ import argparse
 import os
 import re
 
-# Generate MaxQuant XML file and SLURM script
-# Last updated by: Alex Maropakis, 05-18-2026
+"""
+Generate MaxQuant XML file and SLURM script
+Last updated by: Alex Maropakis, 05-18-2026
 
-# Example usage:
-# python gen_mqpar.py template.xml /path/to/raws \
-#   -o Takasugi_2024_Heart_DP.xml \
-#   -e Takasugi_2024 \
-#   -s S3 \
-#   --species mouse
+Example usage:
+python gen_mqpar.py template.xml /path/to/raws \
+  -o Takasugi_2024_Heart_DP.xml \
+  -e Takasugi_2024 \
+  -s S3 \
+  --species mouse
+"""
 
 print("Defining arguments...")
 parser = argparse.ArgumentParser(description='Generate MaxQuant XML and SLURM script')
@@ -51,12 +53,12 @@ def mq_experiment_label(sample):
 
 def species_fasta_path(species):
     return {
-        'human': '/scratch/maropakis.a/Dependencies/FASTA/HUMAN_plusIsoform.fasta',
-        'mouse': '/scratch/maropakis.a/Dependencies/FASTA/MOUSE_C57BL6.fasta',
+        'human': '/scratch/maropakis.a/Dependencies/FASTA/HUMAN.fasta',
+        'mouse': '/scratch/maropakis.a/Dependencies/FASTA/MOUSE_UP000000589_10090.fasta',
     }[species]
 
 
-# --- Replace FASTA path ---
+# Replace FASTA path 
 fasta_path = args.fasta_path or species_fasta_path(args.species)
 fasta_block = f"""<fastaFiles>
    <FastaFileInfo>
@@ -72,11 +74,11 @@ fasta_block = f"""<fastaFiles>
 print(f"Replacing FASTA path for {args.species}... {fasta_path}")
 mqpar_text = re.sub(r'<fastaFiles>.*?</fastaFiles>', fasta_block, mqpar_text, flags=re.DOTALL)
 
-# --- Turn DotNet = True if not already ---
+# Turn DotNet = True if not already 
 print("Turning DotNet = True...")
 mqpar_text = re.sub(r'<useDotNetCore>False</useDotNetCore>', '<useDotNetCore>True</useDotNetCore>', mqpar_text, flags=re.DOTALL)
 
-# --- Collect raw files in order of fraction number ---
+# Collect raw files in order of fraction number 
 print("Collecting raw files...")
 raw_files = []
 for folder in args.raw_file_folders:
@@ -98,7 +100,7 @@ file_paths_xml += '</filePaths>'
 
 mqpar_text = re.sub(r'<filePaths>.*?</filePaths>', file_paths_xml, mqpar_text, flags=re.DOTALL)
 
-# --- Adjust experiments, fractions, ptms, paramGroupIndices ---
+# Adjust experiments, fractions, ptms, paramGroupIndices
 print("Adjusting experiments, fractions, ptms, paramGroupIndices...")
 label = mq_experiment_label(args.sample)
 
@@ -121,7 +123,7 @@ mqpar_text = re.sub(
     flags=re.DOTALL
 )
 
-# --- Set up output folder ---
+# Set up output folder 
 search_name = os.path.splitext(os.path.basename(args.outfile))[0]
 output_folder = f'/scratch/maropakis.a/MQ_outputs/{args.experiment}/{args.search_type}/{search_name}'
 print(f"Setting up output folder... {output_folder}")
@@ -136,14 +138,14 @@ mqpar_text = re.sub(
 
 mqpar_text = re.sub(r'<numThreads>.*?</numThreads>', f'<numThreads>{args.threads}</numThreads>', mqpar_text, flags=re.DOTALL)
 
-# --- Write XML file ---
+# Write XML file 
 xml_dir = os.path.join(os.path.expanduser('~'), 'scripts', 'XML', args.search_type)
 os.makedirs(xml_dir, exist_ok=True)
 xml_path = os.path.join(xml_dir, os.path.basename(args.outfile))
 with open(xml_path, 'w') as f:
     f.write(mqpar_text)
 
-# --- Generate SLURM script ---
+# Generate SLURM script
 print(f"Generating SLURM script... {search_name}")
 mq_version_dots = args.mq_version.replace('_', '.')
 slurm_script = f"""#!/bin/bash
@@ -154,9 +156,13 @@ slurm_script = f"""#!/bin/bash
 #SBATCH --cpus-per-task={args.threads}
 #SBATCH --mem={args.mem}
 #SBATCH --partition={args.partition}
+#SBATCH --time=48:00:00
 
-source ~/.bashrc
+
 MAXQUANT_EXE=/home/maropakis.a/MQ/MaxQuant_{mq_version_dots}/bin/MaxQuantCmd.exe
+export DOTNET_ROOT=$HOME/dotnet
+export PATH=$DOTNET_ROOT:$HOME/dotnet/openssl-1.1/bin:$PATH
+export LD_LIBRARY_PATH=$HOME/dotnet/openssl-1.1/lib:$LD_LIBRARY_PATH
 
 srun dotnet $MAXQUANT_EXE {xml_path}
 """
@@ -166,7 +172,7 @@ os.makedirs(os.path.dirname(slurm_path), exist_ok=True)
 with open(slurm_path, 'w') as f:
     f.write(slurm_script)
 
-# --- Summary ---
+# Summary 
 print(f"XML and SLURM script successfully created! {search_name}")
 print(f"  Species: {args.species}")
 print(f"  FASTA:   {fasta_path}")
