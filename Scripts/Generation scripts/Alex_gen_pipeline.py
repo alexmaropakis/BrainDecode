@@ -220,6 +220,7 @@ SLURM_TEMPLATE = """\
 #SBATCH --error={job_name}_%j.err
 #SBATCH --mem={mem}
 #SBATCH --cpus-per-task={cpus}
+#SBATCH --time=48:00:00
 #SBATCH --partition={partition}
 
 echo "=============================="
@@ -290,7 +291,7 @@ def main():
     # SLURM options
     parser.add_argument('--mem', default='100G',
         help='SLURM memory (default: 100G)')
-    parser.add_argument('--cpus', default='8',
+    parser.add_argument('--cpus', default='20',
         help='SLURM CPUs per task (default: 8)')
     parser.add_argument('--partition', default='short',
         help='SLURM partition (default: short)')
