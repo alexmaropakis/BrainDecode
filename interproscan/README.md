@@ -1,6 +1,6 @@
 # BLASTp — MTP/SAAP Mapping & FragPipe FASTA Construction
 
-Part of the [FragPipe Linux Tutorial](https://github.com/alexmaropakis/FragPipe_Linux_Tutorial). This step maps mistranslated peptides (MTPs / single–amino-acid substitution peptides) back to their parent proteins via `blastp`, classifies them, and builds FragPipe-ready FASTA databases that fold the validated MTP entries in alongside the reference proteome.
+This step maps mistranslated peptides SAAPs back to their parent proteins via `blastp`, classifies them, and builds FragPipe-ready FASTA databases that fold the validated MTP entries in alongside the reference proteome.
 
 ## Overview
 
