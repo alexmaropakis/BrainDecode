@@ -45,6 +45,8 @@ Project_BrainDecode/
 │   ├── Ping_2018/
 │   └── Takasugi_2024/
 ├── mq_output/
+├── frag_output/
+├── Supplementary_Tables/
 └── Plots/
 ```
 
