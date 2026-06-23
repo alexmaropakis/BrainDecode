@@ -57,7 +57,7 @@ gnomAD VCFs are large and kept separate:
     gnomad.exomes.v4.1.sites.chr<N>.vcf.bgz  (+ .tbi)
 ```
 All experimental data (MTP_quant_dict.p) is kept under a common root. 
-{PREFIX} is the general name beginning every experimental folder... 
+{PREFIX} is the general name beginning every experimental folder, it's important for allowing the scripts to walk through every data directory to get the right .p files. Make sure to change {PREFIX} in each script and the paths to match your own. 
 ```
     AAS_ROOT=/scratch/maropakis.a/AAS_Pipeline
     PREFIX=Ping_ # set per dataset
