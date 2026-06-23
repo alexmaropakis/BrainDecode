@@ -1,4 +1,4 @@
-# gnomAD AF / SFS Annotation Pipeline
+# gnomAD Annotation Pipeline
 
 Annotate SAAP (substituted amino-acid peptide) substitution sites against
 **gnomAD v4.1 exome** allele frequencies and **Ensembl 110** codon context.
