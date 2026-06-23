@@ -15,7 +15,7 @@ that distinction; it **does not** filter the dataset itself.
 
 ---
 
-## 1. What this pipeline consumes and produces
+## 1. Inputs / Outputs
 
 **Consumes:** the per-SAAP quantification pickles (`MTP_quant_dict.p`) produced by
 the upstream AAS pipeline (validation2 + quantification must already have run),
@@ -84,7 +84,7 @@ All experimental data (MTP_quant_dict.p) is kept under a common root.
 ```
 ---
 
-## 3. Run order
+## 3. Pipeline
 
 ```
     sbatch 1_get_exome.sh        # gnomAD v4.1 exome VCFs
@@ -115,7 +115,7 @@ directly, with no genomic-coordinate reconstruction required.
 
 ---
 
-## 5. Stage-by-stage detail
+## 5. Stages of running the pipeline
 
 ### Stage 1 — `1_get_exome.sh` : fetch gnomAD v4.1 exome VCFs
 
