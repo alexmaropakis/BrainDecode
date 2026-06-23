@@ -75,36 +75,10 @@ Project_BrainDecode/
 6. Save plots to `Project_BrainDecode/Plots/`.
 7. Save supplementary tables to `Project_BrainDecode/Supplementary_Tables/`. 
 
-## Data Generation Workflows
-### Step 1: Custom protein databases 
-Use RNA-seq data matched to LC-MS proteomics data to create sample-specific protein databases.
-
-The code for this step is in [custom_protein_database_pipeline](https://github.com/SlavovLab/decode/tree/main/custom_protein_database_pipeline) and the [README.md](custom_protein_database_pipeline/README.md) in that directory contains detailed instructions for running the code.
-
-If no matched RNA-seq data is available, this step can be skipped, but caution should be taken in interpreting quantified amino acid substitutions as there is lower confidence that they are not encoded in the genome.
-
-### Step 2: Identifying modified peptides with MaxQuant or DIA-NN
-
-[Guide for running MaxQuant in Linux.](https://github.com/alexmaropakis/MaxQuant_Linux_Tutorial)
-The dependent peptide search algorithm in MaxQuant is used to identify peptides with modifications in LC-MS proteomics data. 
-
-The LC-MS prteomics data is ideally searched against the sample-specific database generated in Step 1. If not available, species-specific UniProt FASTA can be used. 
-
-A sample MaxQuant parameter file is provided in MaxQuant_templates, along with a script to create a new parameter file with user-defined parameters (raw files, fasta, etc.)
-
-The output from this dependent peptide search is required to proceed with the next steps of the pipeline.
-
-### Step 3: Identifying candidate alternate translation events
-Search for modified peptides in dependent peptide search results that may represent amino acid substitutions. Add candidate peptides to custom protein sequence databases for validation search.
-
-
-### Step 4. Validation search with MaxQuant, FragPipe, or another proteomics data search engine
-Run a standard database search using the protein databases appended with candidate substituted peptides (step 3).
-
-A sample MaxQuant parameter file is provided in MaxQuant_templates. The output from this validation search is required to proceed with the next steps of the pipeline.
-
-
-### Step 5. Quantify alternative RNA decoding events
-
-
-### Step 6. Downstream data analysis
+## Data Generation & Analysis Workflows [WIP]
+### MaxQuant / FragPipe 
+### AAS Pipeline
+### gnomAD 
+### Pfam domains 
+### AlphaMissense ? Spurs ? 
+### Analysis
