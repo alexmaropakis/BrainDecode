@@ -1,10 +1,10 @@
 #!/bin/bash
 # 1_get_exome.sh
-#
+
 # Download the gnomAD v4.1 exome site VCFs (one per chromosome) plus their
 # tabix indices. These carry the allele frequencies (AF), allele counts (AC),
 # and the embedded Ensembl VEP CSQ that the rest of the pipeline reads.
-#
+
 # Output: $DEST/gnomad.exomes.v4.1.sites.chr<N>.vcf.bgz (+ .tbi)
 
 #SBATCH --job-name=get_gnomad
