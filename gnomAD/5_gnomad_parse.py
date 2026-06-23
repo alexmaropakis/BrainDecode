@@ -330,44 +330,56 @@ def main():
         wa.writeheader()
 
         for r in rows:
+            # default status: rows that scanned cleanly but matched nothing
             st = r.get("_status", "site_no_gnomad_missense")
+            # has_site: gnomAD observed some missense here -> codon context reportable
             has_site = st in ("reproduces_saap_sub", "site_variant_other_sub")
+            # repro: gnomAD has a variant making the SAME sub -> AF/AC reportable
             repro = (st == "reproduces_saap_sub")
+            # AF/AC are variant-specific: only valid when the sub is reproduced
             af = r.get("_af") if repro else None
             ac = r.get("_ac") if repro else None
 
+            # tally categories for the summary print; set the polymorphic flag
             if has_site:
                 n_site += 1
                 if repro:
                     n_repro += 1
-                    poly = (af is not None and af > 0)
+                    poly = (af is not None and af > 0)   # AF>0 -> seen as a real polymorphism
                     if poly:
                         n_poly += 1
                     poly_out = poly
                 else:
                     poly_out = ""          # no variant-specific AF for this sub
             else:
-                poly_out = ""
+                poly_out = ""              # site not observed; polymorphic undefined
 
+            # start from the carried-through stage-4 columns, then add gnomAD fields
             out = {c: r.get(c, "") for c in base}
             out.update(
+                # variant identity/coords: only the variant that reproduces the sub
                 gnomad_variant=r.get("_var", "") if repro else "",
                 gnomad_chr=r.get("_gchr", "") if repro else "",
                 gnomad_pos=r.get("_gpos", "") if repro else "",
                 gnomad_ref=r.get("_gref", "") if repro else "",
                 gnomad_alt=r.get("_galt", "") if repro else "",
+                # allele count / frequency: variant-specific, reproduced subs only
                 gnomad_ac=ac if (repro and ac is not None) else "",
                 gnomad_af=af if (repro and af is not None) else "",
                 polymorphic=poly_out,
+                # codon context: valid for any observed missense at the site
                 codon=r.get("_codon", "") if has_site else "",
+                # alt codon / changed base: only meaningful for the reproduced variant
                 alt_codon=r.get("_alt_codon", "") if repro else "",
                 codon_change_pos=(r.get("_cpos", "") if (repro and r.get("_cpos") is not None) else ""),
+                # ref_base comes from the site codon (has_site); alt_base from the variant (repro)
                 ref_base=(r.get("_rb", "") if (has_site and r.get("_rb") is not None) else ""),
                 alt_base=(r.get("_ab", "") if (repro and r.get("_ab") is not None) else ""),
-                mutated_base=(r.get("_ab", "") if (repro and r.get("_ab") is not None) else ""),
+                mutated_base=(r.get("_ab", "") if (repro and r.get("_ab") is not None) else ""),  # alias of alt_base
                 strand=r.get("_strand", "") if has_site else "",
                 consequence=r.get("_conseq", "") if has_site else "",
                 reproduces_saap_sub=r.get("_same_sub", "") if has_site else "",
+                # exact_mutation: blank unless a codon was read and the check returned a bool
                 exact_mutation=("" if (not has_site or r.get("_exact") is None)
                                 else r.get("_exact")),
                 gnomad_status=st,
@@ -377,7 +389,7 @@ def main():
     print(f"{len(rows)} rows processed")
     print(f"{n_site} matched an observed gnomAD missense at the site")
     print(f"{n_repro} of those reproduce the SAAP substitution exactly")
-    print(f"{n_poly} are polymorphic (AF>0)")
+    print(f"{n_poly} may be polymorphic (AF>0)")
     print(f"wrote {ann}")
 
 
