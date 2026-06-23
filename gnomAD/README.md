@@ -26,8 +26,8 @@ carrying the original MS-derived identity plus gnomAD allele frequency/count,
 Ensembl codon context, the substitution direction check, and a categorical
 `gnomad_status` that records exactly how (or whether) gnomAD resolved the site.
 
-**Scope:** human only. gnomAD has no mouse data, so Takasugi (aged mouse) SAAPs
-are not annotated here and pass downstream unannotated; this pipeline is run on
+**Scope:** gnomAD has no mouse data, so Takasugi (aged mouse) SAAPs
+are not annotated here and pass downstream unannotated; this pipeline is run only on
 the human datasets (Ping 2018, Bai 2020 — ACG/FC plexes).
 
 ---
