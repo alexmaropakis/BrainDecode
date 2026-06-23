@@ -20,7 +20,7 @@
 set -euo pipefail
 
 ROOT=/scratch/maropakis.a/Dependencies/gnomAD_pipeline
-ENSDIR = $ROOT/ensembl_110
+ENSDIR=$ROOT/ensembl_110
 mkdir -p "$ENSDIR" "$ROOT/logs"
 cd "$ENSDIR"
 
@@ -31,11 +31,11 @@ GTFBASE=https://ftp.ensembl.org/pub/release-110/gtf/homo_sapiens
 wget -c "$BASE/pep/Homo_sapiens.GRCh38.pep.all.fa.gz"
 
 # get GTF (gene-region bounds for gene_coords.tsv)
-wget -c "$GTFBASE/Homo_sapiens.GRCh38.${REL}.gtf.gz"
+wget -c "$GTFBASE/Homo_sapiens.GRCh38.110.gtf.gz"
 
 # Unpackage!!!
 gunzip -kf Homo_sapiens.GRCh38.pep.all.fa.gz
-gunzip -kf Homo_sapiens.GRCh38.${REL}.gtf.gz
+gunzip -kf Homo_sapiens.GRCh38.110.gtf.gz
 
 # Build gene_coords.tsv 
 # maps gene_name to chromosome, start, end (1-based, from gene rows)
@@ -44,7 +44,7 @@ gunzip -kf Homo_sapiens.GRCh38.${REL}.gtf.gz
 gawk -F'\t' '$3=="gene"{
     if (match($9, /gene_name "([^"]+)"/, a))
         print a[1]"\t"$1"\t"$4"\t"$5
-}' "Homo_sapiens.GRCh38.${REL}.gtf" > gene_coords.tsv
+}' "Homo_sapiens.GRCh38.110.gtf" > gene_coords.tsv
 
 # build BLAST protein database from Ensembl proteome 
 export PATH=$HOME/bin/ncbi-blast-2.17.0+/bin:$PATH

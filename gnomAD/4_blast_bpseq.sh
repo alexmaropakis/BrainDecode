@@ -18,8 +18,7 @@ set -euo pipefail
 
 ROOT=/scratch/maropakis.a/Dependencies/gnomAD_pipeline
 SCRIPTS=/home/maropakis.a/scripts/gnomAD
-REL=110
-ENS=$ROOT/ensembl_${REL}/Homo_sapiens.GRCh38.pep.all.fa
+ENS=$ROOT/ensembl_110/Homo_sapiens.GRCh38.pep.all.fa
 
 export PATH=$HOME/bin/ncbi-blast-2.17.0+/bin:$PATH
 blastp -version

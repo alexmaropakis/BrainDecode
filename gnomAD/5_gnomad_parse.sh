@@ -16,13 +16,12 @@ set -euo pipefail
 
 ROOT=/scratch/maropakis.a/Dependencies/gnomAD_pipeline
 SCRIPTS=/home/maropakis.a/scripts/gnomAD
-REL=110
 
 mkdir -p "$ROOT/gnomad/logs"
 
 python3 "$SCRIPTS/5_gnomad_parse.py" \
   --keep-csv   "$ROOT/mtp_maps/saap_mapped.csv" \
   --gnomad-dir /scratch/maropakis.a/gnomad_v4.1_exomes \
-  --gene-bed   "$ROOT/ensembl_${REL}/gene_coords.tsv" \
+  --gene-bed   "$ROOT/ensembl_110/gene_coords.tsv" \
   --out-dir    "$ROOT/gnomad/" \
   --prefix     Ping # dataset name or whatever you want
