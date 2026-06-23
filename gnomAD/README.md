@@ -28,7 +28,7 @@ Ensembl codon context, the substitution direction check, and a categorical
 
 **Scope:** gnomAD has no mouse data, so Takasugi (aged mouse) SAAPs
 are not annotated here and pass downstream unannotated; this pipeline is run only on
-the human datasets (Ping 2018, Bai 2020 — ACG/FC plexes).
+the human datasets (Ping 2018 — ACG/FC plexes).
 
 ---
 
