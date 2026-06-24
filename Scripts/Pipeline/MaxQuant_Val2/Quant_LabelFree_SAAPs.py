@@ -88,7 +88,10 @@ def median_normalize(sample_raw):
     Input: list of raw precursor intensities for tissue
     Output: median-normalized list of precursor intensities for tissue
     """
-    sample_median = np.median(sample_raw)
+    arr = np.array(sample_raw, dtype=float)
+    sample_median = np.median(arr[~np.isnan(arr)])
+    if sample_median == 0 or np.isnan(sample_median):
+        return [np.nan] * len(sample_raw)
     sample_norm = [x/sample_median for x in sample_raw]
     return(sample_norm)
 
@@ -106,13 +109,16 @@ def precursor_intensity_quant(k, tissue):
     ev_df = val_evidence_dict[tissue]
     bp_ev_df = ev_df.loc[ev_df['Sequence']==bp,:]
     bp_prec_int = np.sum([x for x in bp_ev_df['Intensity'].values if ~np.isnan(x)])
-    norm_bp_prec_int = np.sum([x for x in bp_ev_df['Intensity'].values if ~np.isnan(x)])
+    norm_bp_prec_int = np.sum([x for x in bp_ev_df['Intensity_Normalized'].values if ~np.isnan(x)])
     
     mtp_ev_df = ev_df.loc[ev_df['Sequence']==mtp,:]
     mtp_prec_int = np.sum([x for x in mtp_ev_df['Intensity'].values if ~np.isnan(x)])
-    norm_mtp_prec_int = np.sum([x for x in mtp_ev_df['Intensity'].values if ~np.isnan(x)])
+    norm_mtp_prec_int = np.sum([x for x in mtp_ev_df['Intensity_Normalized'].values if ~np.isnan(x)])
   
-    prec_ratio = np.log2(mtp_prec_int/bp_prec_int)
+    if bp_prec_int > 0 and mtp_prec_int > 0:
+        prec_ratio = np.log2(mtp_prec_int/bp_prec_int)
+    else:
+        prec_ratio = np.nan
     return([mtp_prec_int, bp_prec_int, norm_mtp_prec_int, norm_bp_prec_int, prec_ratio])
 
 
@@ -143,3 +149,4 @@ for s in samples:
 
 print('saving results to file')
 pickle.dump(MTP_quant_dict, open(aas_dir+'MTP_quant_dict.p', 'wb'))
+print('finished with quant!')

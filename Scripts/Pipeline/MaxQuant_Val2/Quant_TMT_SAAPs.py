@@ -22,15 +22,12 @@ from copy import deepcopy
 # Last updated 05-07-2026 by Alex Maropakis
 
 
-""" This script is for use with TMT-labeled datasets. It follows the AAS_detection and AAS_validation scripts. 
-It takes in highly confidently identified peptides with AAS, 
-and quantifies them. Output metrics include normalized abundances, and ratios of peptide with AAS to its base peptide, 
-at both precursor and reporter-ion levels, stored in a dict that structured by unique MTP-BP pairs, as opposed to TMT sets.
+""" This script is for use with TMT-labeled datasets. It follows the AAS_detection and AAS_validation scripts. It takes in highly confidently identified peptides with AAS, and quantifies them. Output metrics include normalized abundances, and ratios of peptide with AAS to its base peptide, at both precursor and reporter-ion levels, stored in a dict that structured by unique MTP-BP pairs, as opposed to TMT sets.
 
     This script also generates a dictionary of quant data organized by AAS type
     
     MTP = mistranslated peptide (SAAP or substituted amino acid peptide)
-    BP = base peptide (RNA-templated peptide)
+    BP = base peptide (RNA-tempalted peptide)
 """
 
 print("Beginning final quantification...")
@@ -133,8 +130,7 @@ def precursor_intensity_quant(k, tmt_set):
         prec_ratio = np.log10(mtp_prec_int / bp_prec_int)
     return [mtp_prec_int, bp_prec_int, prec_ratio]
 
-# distribute precursor intensity by ratios of reporter ions in tmt set. 
-# these values used for sample-level quantification of peptide
+# distribute precursor intensity by ratios of reporter ions in tmt set. these values used for sample-level quantification of peptide
 def distribute_prec_int(k, tmt_set):
     """
     Distribute precursor intensity across reporter ion channels by their relative fractions.
@@ -212,5 +208,3 @@ for s in samples:
 
 print("Saving results to MTP_quant_dict.p")
 pickle.dump(MTP_quant_dict, open(aas_dir+'MTP_quant_dict.p', 'wb'))
-
-print("Quantification of TMT labeled SAAPs finished!")
