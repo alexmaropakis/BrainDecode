@@ -138,7 +138,7 @@ for f in glob(Frag_dir+'*_1/*FR*.tsv') + glob(Frag_dir+'*_1/*fraction*.tsv'):
     frag_tsv_dict[raw] = pd.read_csv(f, sep='\t', low_memory=False)
 
 ### apply function and annotate val_mtp_dict
-"""requires per-fraction MSFragger .tsv files (FragPipe output)"""
+"""requires per-fraction MSFragger .tsv files """
 for s in samples:
     print(s)
     ev = val_evidence_dict[s]

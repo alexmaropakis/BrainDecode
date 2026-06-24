@@ -12,25 +12,44 @@ Template filtering by --mode:
   '_LabelFree_' in filename -> included only in 'labelfree' mode
   all other .py files       -> included in both modes
 
+Template filtering by --engine:
+  '_FragPipe' in filename   -> included only when engine == 'fragpipe'
+  For steps that have a _FragPipe variant (e.g. Validation2, Quant),
+  the non-FragPipe template is excluded when engine == 'fragpipe'.
+  Steps with no _FragPipe variant (Detection, Validation1) use the
+  shared template regardless of engine.
+
 Species filtering by --species:
   human -> uses normal Detection and Validation1 templates
   mouse -> uses Mouse Detection and Mouse Validation1 templates
   all later steps, such as Validation2 and Quant, use the normal templates
 
-MQ_dir path structure:
+MQ_dir path structure (maxquant engine):
   MQ_outputs/<mq_folder>/DP/<search_name>_DP/combined/txt/
   MQ_outputs/<mq_folder>/Val/<search_name>_Val/combined/txt/
   The _DP or _Val suffix is auto-appended based on which placeholder
   the template contains.
+
+Frag_dir path structure (fragpipe engine):
+  Frag_outputs/results/<plex>/<plex>_1/
+  This is where psm.tsv and the per-fraction fragment TSVs live.
 
 FASTA naming (--fasta):
   Provide the base name (e.g. S1_ACGB1). The script appends:
     _noMTP.fasta  for the reference FASTA
     _MTP.fasta    for the appended output
 
-TMT example:
+TMT example (maxquant):
   python gen_pipeline.py \
       --experiment Ping_2018_ACGb1 --mode tmt --species human \
+      --mq_folder Ping_2018 --search_name Ping2018_ACG_B1 \
+      --sample_map sample_map_acgb1 \
+      --fasta S1_ACGB1
+
+TMT example (fragpipe):
+  python gen_pipeline.py \
+      --experiment Ping_2018_ACGb1 --mode tmt --species human \
+      --engine fragpipe --plex acgb1 \
       --mq_folder Ping_2018 --search_name Ping2018_ACG_B1 \
       --sample_map sample_map_acgb1 \
       --fasta S1_ACGB1
@@ -42,7 +61,7 @@ Mouse TMT example:
       --sample_map sample_map_heart \
       --fasta S3_Takasugi2024
 
-Last updated by: Alex Maropakis, 05-18-2026
+Last updated by: Alex Maropakis, 06-24-2026
 """
 
 import argparse
@@ -53,7 +72,6 @@ from glob import glob
 
 
 ## Set directories
-
 HOME = '/home/maropakis.a'
 SCRATCH = '/scratch/maropakis.a'
 
@@ -63,9 +81,7 @@ DEFAULT_SLURM_DIR = os.path.join(HOME, 'scripts', 'Batch', 'python')
 
 
 ## Find templates
-
 STEP_ORDER = ['Detection', 'Validation1', 'Validation2', 'Quant']
-
 
 def _step_sort_key(filename):
     """Return (priority, filename) so scripts run in pipeline order."""
@@ -76,9 +92,32 @@ def _step_sort_key(filename):
     return (len(STEP_ORDER), filename)
 
 
+def _step_keyword(filename):
+    """Return the pipeline step keyword in a filename, or None."""
+    name_upper = filename.upper()
+    for keyword in STEP_ORDER:
+        if keyword.upper() in name_upper:
+            return keyword
+    return None
+
+
+def _has_fragpipe_variant(filename, all_paths):
+    """True if a _FragPipe template exists for this file's pipeline step."""
+    step = _step_keyword(filename)
+    if step is None:
+        return False
+    for p in all_paths:
+        base = os.path.basename(p)
+        btok = os.path.splitext(base)[0].split('_')
+        if _step_keyword(base) == step and ('FragPipe' in btok or 'fragpipe' in btok):
+            return True
+    return False
+
+
 def _is_mouse_template(filename):
     """Return True for species-specific mouse template names."""
-    return '_Mouse_' in filename or '_mouse_' in filename
+    tokens = os.path.splitext(filename)[0].split('_')
+    return 'Mouse' in tokens or 'mouse' in tokens
 
 
 def _is_species_specific_step(filename):
@@ -106,13 +145,14 @@ def _species_template_ok(filename, species):
     return not is_mouse
 
 
-def discover_templates(template_dir, mode, species):
+def discover_templates(template_dir, mode, species, engine):
     """
     Find all .py files in template_dir.
 
     Filter by:
       mode    -> tmt / labelfree
       species -> human / mouse for Detection and Validation1 only
+      engine  -> maxquant / fragpipe
 
     Returns list sorted in pipeline execution order.
     """
@@ -121,14 +161,22 @@ def discover_templates(template_dir, mode, species):
 
     for path in all_py:
         name = os.path.basename(path)
-        is_tmt = '_TMT_' in name or '_tmt_' in name
-        is_lf = '_LabelFree_' in name or '_labelfree_' in name or '_Labelfree_' in name
+        tokens = os.path.splitext(name)[0].split('_')
+        is_tmt = 'TMT' in tokens or 'tmt' in tokens
+        is_lf = 'LabelFree' in tokens or 'labelfree' in tokens or 'Labelfree' in tokens
+        is_fragpipe = 'FragPipe' in tokens or 'fragpipe' in tokens
 
         if is_tmt and mode != 'tmt':
             continue
         if is_lf and mode != 'labelfree':
             continue
         if not _species_template_ok(name, species):
+            continue
+        # engine axis: fragpipe templates only in fragpipe runs, and
+        # fragpipe runs only use fragpipe templates for steps that have them
+        if is_fragpipe and engine != 'fragpipe':
+            continue
+        if engine == 'fragpipe' and _has_fragpipe_variant(name, all_py) and not is_fragpipe:
             continue
 
         selected.append(name)
@@ -144,7 +192,6 @@ def make_output_name(template_name, experiment):
 
 
 ## Define substitution patterns for paths
-
 def make_substitutions(args):
     """
     Build (compiled_regex, replacement) pairs for all placeholder paths.
@@ -169,6 +216,14 @@ def make_substitutions(args):
         re.compile(r"(MQ_outputs/)[ \t]+(/)"),
         lambda m: f"{m.group(1)}{args.mq_folder}/DP/{args.search_name}_DP{m.group(2)}"
     ))
+
+    # Frag_dir: 'Frag_outputs/    /' (and the doubled-gap variant)
+    # -> 'Frag_outputs/results/<plex>/<plex>_1/'
+    if args.plex:
+        subs.append((
+            re.compile(r"(Frag_outputs/)[ \t]+/[ \t]*"),
+            lambda m: f"{m.group(1)}results/{args.plex}/{args.plex}_1/"
+        ))
 
     # aas_dir: 'AAS_Pipeline/  '
     subs.append((
@@ -212,7 +267,6 @@ def apply_substitutions(text, subs):
 
 
 ## Generate slurm script
-
 SLURM_TEMPLATE = """\
 #!/bin/bash
 #SBATCH --job-name={job_name}
@@ -252,7 +306,6 @@ def generate_slurm(args, script_name, script_dir):
 
 
 ## Generate pipeline files
-
 def main():
     parser = argparse.ArgumentParser(
         description='Generate experiment-specific SAAP pipeline scripts from templates.',
@@ -266,11 +319,17 @@ def main():
         help="Pipeline mode: 'tmt' or 'labelfree'")
     parser.add_argument('--species', default='human', choices=['human', 'mouse'],
         help="Species for Detection and Validation1 templates only (default: human)")
+    parser.add_argument('--engine', default='maxquant', choices=['maxquant', 'fragpipe'],
+        help="Search engine: 'maxquant' or 'fragpipe' (default: maxquant)")
     parser.add_argument('--mq_folder', required=True,
         help='Top-level MQ output folder (e.g. Ping_2018)')
     parser.add_argument('--search_name', required=True,
         help='MQ search subfolder base name (e.g. Ping2018_ACG_B1). '
              '_DP and _Val suffixes are appended automatically.')
+
+    # Engine-specific
+    parser.add_argument('--plex', default=None,
+        help='[FragPipe] Plex folder name under Frag_outputs/results/ (e.g. acgb1, aorta)')
 
     # Mode-specific
     parser.add_argument('--sample_map', default=None,
@@ -289,10 +348,10 @@ def main():
         help=f'Output directory for SLURM .sh script (default: {DEFAULT_SLURM_DIR})')
 
     # SLURM options
-    parser.add_argument('--mem', default='100G',
-        help='SLURM memory (default: 100G)')
-    parser.add_argument('--cpus', default='20',
-        help='SLURM CPUs per task (default: 8)')
+    parser.add_argument('--mem', default='16G',
+        help='SLURM memory (default: 16G)')
+    parser.add_argument('--cpus', default='4',
+        help='SLURM CPUs per task (default: 4)')
     parser.add_argument('--partition', default='short',
         help='SLURM partition (default: short)')
 
@@ -305,14 +364,16 @@ def main():
         parser.error('--sample_map is required for TMT mode')
     if args.mode == 'labelfree' and not args.tissue_list:
         parser.error('--tissue_list is required for label-free mode')
+    if args.engine == 'fragpipe' and not args.plex:
+        parser.error('--plex is required for fragpipe engine')
 
     # -- Discover templates --
-    templates = discover_templates(args.template_dir, args.mode, args.species)
+    templates = discover_templates(args.template_dir, args.mode, args.species, args.engine)
     if not templates:
-        print(f'ERROR: No .py templates found in {args.template_dir} for mode "{args.mode}" and species "{args.species}"')
+        print(f'ERROR: No .py templates found in {args.template_dir} for mode "{args.mode}", species "{args.species}", engine "{args.engine}"')
         sys.exit(1)
 
-    print(f'\nFound {len(templates)} template(s) for mode "{args.mode}" and species "{args.species}":')
+    print(f'\nFound {len(templates)} template(s) for mode "{args.mode}", species "{args.species}", engine "{args.engine}":')
     for t in templates:
         print(f'  {t}')
     print()
@@ -355,17 +416,19 @@ def main():
 
     ## Summary 
     print(f'''
-{"=" * 60}
-  Experiment:    {args.experiment}
-  Mode:          {args.mode}
-  Species:       {args.species}
-  MQ folder:     {args.mq_folder}
-  Search name:   {args.search_name}
-  Scripts:       {args.output_dir}
-  SLURM:         {args.slurm_dir}
-  SLURM files:   {len(slurm_paths)}
-{"=" * 60}
-''')
+        {"=" * 60}
+        Experiment:    {args.experiment}
+        Mode:          {args.mode}
+        Species:       {args.species}
+        Engine:        {args.engine}
+        Plex:          {args.plex}
+        MQ folder:     {args.mq_folder}
+        Search name:   {args.search_name}
+        Scripts:       {args.output_dir}
+        SLURM:         {args.slurm_dir}
+        SLURM files:   {len(slurm_paths)}
+        {"=" * 60}
+        ''')
 
 
 if __name__ == '__main__':
