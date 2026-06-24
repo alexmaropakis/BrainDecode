@@ -46,11 +46,24 @@ home_dir        = '/home/maropakis.a/'
 scratch_dir     = '/scratch/maropakis.a/'
 # code_dir      = home_dir + 'scripts/'
 
-Frag_dir        = scratch_dir + 'Frag_outputs/    /' # edit to include data folder
+Frag_dir        = scratch_dir + 'Frag_outputs/results/    /' # edit to include data folder
 aas_dir         = scratch_dir + 'AAS_Pipeline/  '  # edit to include data folder
 database_dir    = scratch_dir + 'Dependencies/FASTA/'
 sample_map = pd.read_excel(scratch_dir + 'Dependencies/sample_map/        .xlsx') # edit sample map
 samples = ['S'+str(i) for i in list(set(sample_map['TMT plex']))]
+
+# FragPipe names reporter channels '<sample_name>' but reference/duplicate
+# channels (e.g. two GIS_NA rows) collide. Rename any duplicated sample_name
+# in-place to the actual psm.tsv channel for that row, keyed by TMT channel order.
+_ref = pd.read_csv(glob(Frag_dir+'psm.tsv')[0], sep='\t', nrows=1)
+_chans = [c[len('Intensity '):] for c in _ref.columns if c.startswith('Intensity ')]
+_unmatched = [c for c in _chans if c not in set(sample_map['sample_name'])]
+_dup = sample_map.index[sample_map['sample_name'].duplicated(keep=False)].tolist()
+for _i, _idx in enumerate(sorted(_dup, key=lambda j: str(sample_map.loc[j,'TMT channel']))):
+    _chnum = str(sample_map.loc[_idx,'TMT channel'])
+    _m = next((u for u in _unmatched if _chnum in u), _unmatched[_i] if _i < len(_unmatched) else None)
+    if _m is not None:
+        sample_map.loc[_idx,'sample_name'] = _m
 
 mtp_dict      = pickle.load(open(aas_dir+'Ion_validated_MTP_dict.p', 'rb'))
 val_evidence_dict = pickle.load(open(aas_dir+'Validation_search_evidence_dict.p', 'rb'))

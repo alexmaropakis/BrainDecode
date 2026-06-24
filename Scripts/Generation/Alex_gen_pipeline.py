@@ -72,6 +72,7 @@ from glob import glob
 
 
 ## Set directories
+
 HOME = '/home/maropakis.a'
 SCRATCH = '/scratch/maropakis.a'
 
@@ -81,7 +82,9 @@ DEFAULT_SLURM_DIR = os.path.join(HOME, 'scripts', 'Batch', 'python')
 
 
 ## Find templates
+
 STEP_ORDER = ['Detection', 'Validation1', 'Validation2', 'Quant']
+
 
 def _step_sort_key(filename):
     """Return (priority, filename) so scripts run in pipeline order."""
@@ -192,6 +195,7 @@ def make_output_name(template_name, experiment):
 
 
 ## Define substitution patterns for paths
+
 def make_substitutions(args):
     """
     Build (compiled_regex, replacement) pairs for all placeholder paths.
@@ -217,12 +221,12 @@ def make_substitutions(args):
         lambda m: f"{m.group(1)}{args.mq_folder}/DP/{args.search_name}_DP{m.group(2)}"
     ))
 
-    # Frag_dir: 'Frag_outputs/    /' (and the doubled-gap variant)
+    # Frag_dir: 'Frag_outputs/results/        /  '
     # -> 'Frag_outputs/results/<plex>/<plex>_1/'
     if args.plex:
         subs.append((
-            re.compile(r"(Frag_outputs/)[ \t]+/[ \t]*"),
-            lambda m: f"{m.group(1)}results/{args.plex}/{args.plex}_1/"
+            re.compile(r"(Frag_outputs/results/)[ \t]+/[ \t]*"),
+            lambda m: f"{m.group(1)}{args.plex}/{args.plex}_1/"
         ))
 
     # aas_dir: 'AAS_Pipeline/  '
@@ -267,6 +271,7 @@ def apply_substitutions(text, subs):
 
 
 ## Generate slurm script
+
 SLURM_TEMPLATE = """\
 #!/bin/bash
 #SBATCH --job-name={job_name}
@@ -306,6 +311,7 @@ def generate_slurm(args, script_name, script_dir):
 
 
 ## Generate pipeline files
+
 def main():
     parser = argparse.ArgumentParser(
         description='Generate experiment-specific SAAP pipeline scripts from templates.',
