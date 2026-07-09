@@ -11,26 +11,31 @@ from operator import itemgetter
 from Bio import SeqIO
 from Bio import BiopythonWarning
 
-warnings.simplefilter('ignore',BiopythonWarning)
+# Build genome frame translations for Decode AAS Pipeline
+# Script for frame translation generation in Tsour et al. Nature, 2026
 
-# Build genome frame translations for decode pipeline
-# Script based on frame translation generation in Tsour et al. Nature, 2026
-# Last updated by: Alex Maropakis, 05-18-2026
+# Set directories & genome paths 
+# Add as many as you want and the script will go through them all, just define in {species, fasta, outdir} format
+scratch_dir = '/scratch/maropakis.a/'
+GENOMES = {
+    'human':{
+        'fasta':scratch_dir + 'Dependencies/FASTA/HUMAN_GENOME.fna',
+        'outdir':scratch_dir + 'Dependencies/frame_translations/human/'
+    },
+    'mouse':{
+        'fasta':scratch_dir + 'Dependencies/FASTA/MOUSE_GENOME.fna',
+        'outdir':scratch_dir + 'Dependencies/frame_translations/mouse/'
+    }
+}
 
-print("===================================================")
-print("Building genome frame translations")
-print("===================================================")
+print("Directories & genomes loaded, building genome frame translations!")
 
-scratch_dir='/scratch/maropakis.a/'
-
-GENOMES={'human':{'fasta':scratch_dir+'Dependencies/FASTA/HUMAN_GENOME.fna','outdir':scratch_dir+'Dependencies/frame_translations/human/'},'mouse':{
-fasta':scratch_dir+'Dependencies/FASTA/MOUSE_GENOME.fna','outdir':scratch_dir+'Dependencies/frame_translations/mouse/'}}
-    
-log_file=scratch_dir+'Dependencies/frame_translations/gen_frameshifts.log'
+# Logging in case of error
+log_file = scratch_dir + 'Dependencies/frame_translations/gen_frameshifts.log'
 logging.basicConfig(filename=log_file,level=logging.INFO,format='%(asctime)s | %(levelname)s | %(message)s')
 logging.info('Starting frame translation generation')
 
-## Functions
+# Helper functions derived from Tsour et al., Nature 2026 
 def suffix_array(text,_step=16):
     """Analyze all common strings in the text.
     
@@ -97,22 +102,25 @@ def suffix_array(text,_step=16):
                 newgr=rsa[pos+step] if pos+step<size else -1
                 glist.append((newgr,pos))
             glist.sort()
+
             for ig,g in groupby(glist,key=itemgetter(0)):
                 g=[x[1] for x in g]
                 sa[igrp:igrp+len(g)]=g
                 grpstart[igrp]=(len(g)>1)
+
                 for pos in g:
                     rsa[pos]=igrp
+
                 igrp+=len(g)
         step*=2
     del grpstart
     del rsa
-
     return sa
 
 def build_ref_translation(path_to_fasta,frameshift_dir,f=[1,2,3,4,5,6]):
     """ build reference fasta for removal of homologous sequences """
     """ f = frame """
+
     logging.info(f'Starting frame {f}')
 
     record_list=[]
@@ -121,6 +129,7 @@ def build_ref_translation(path_to_fasta,frameshift_dir,f=[1,2,3,4,5,6]):
     boundaries_aa=[0]
 
     t0=time.time()
+
     for i,record in enumerate(SeqIO.parse(open(path_to_fasta,'r+'),'fasta')):
         if i%100==0:
             print(f'Processing record {i}')
@@ -138,7 +147,6 @@ def build_ref_translation(path_to_fasta,frameshift_dir,f=[1,2,3,4,5,6]):
 
     print("Concatenating translations...")
     logging.info(f'Frame {f} concatenating translations')
-
     W_aa=''.join(translated_record_list)
 
     print(f'Translated AA length: {len(W_aa):,}')
@@ -169,17 +177,15 @@ def build_ref_translation(path_to_fasta,frameshift_dir,f=[1,2,3,4,5,6]):
     return(W_aa_ambiguous,sa_ambiguous)
 
 
-## Main
+# Generate frame translation files 
 for species,cfg in GENOMES.items():
 
     fasta_path=cfg['fasta']
     outdir=cfg['outdir']
 
-    print("===================================================")
     print(f"Species: {species}")
     print(f"FASTA:   {fasta_path}")
     print(f"Output:  {outdir}")
-    print("===================================================")
 
     logging.info(f'Species={species}')
     logging.info(f'FASTA={fasta_path}')
@@ -188,14 +194,18 @@ for species,cfg in GENOMES.items():
     os.makedirs(outdir,exist_ok=True)
 
     for frame in range(1,7):
+
         wp=os.path.join(outdir,f'W{frame}_aa_ambig.p')
         sp=os.path.join(outdir,f's{frame}a_ambig.p')
+
         if os.path.exists(wp) and os.path.exists(sp):
+
             print(f'Frame {frame} already exists. Skipping.')
             logging.info(f'Skipping existing frame {frame}')
+
             continue
+
         build_ref_translation(fasta_path,outdir,frame)
 
-print("All frame translations completed.")
-
+print("All frame translations completed!")
 logging.info('All frame translations completed')
