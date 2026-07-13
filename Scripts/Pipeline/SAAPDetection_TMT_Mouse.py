@@ -21,11 +21,9 @@ import multiprocessing as mp
 # Script adapted from Tsour et al., Nature 2026
 # Last updated 05-15-2026 by Alex Maropakis
 
-##############################################################################
 # This code reads in results from DP search with MaxQuant and dataset metadata
 # from TMT-labeled data and outputs dictionaries of data for putative peptides
 # with amino acid substitutions
-##############################################################################
 
 ### Set Directories
 ### use gen_pipeline.py to set directories with command line arguments, then read in directories here
